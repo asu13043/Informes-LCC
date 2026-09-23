@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Informes LCC ANDE</title>
+    <!-- Tailwind CSS para diseño rápido -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- Supabase JS CDN -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- Chart.js CDN para gráficos -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- SheetJS CDN para exportar a Excel -->
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body class="bg-gray-100 font-sans p-6">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Encabezado -->
+        <div class="flex justify-between items-center mb-6 bg-white p-6 rounded-xl shadow-xs">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Panel de Resúmenes y Gestión</h1>
+                <p class="text-gray-500 text-sm">Laboratorio de Control y Calidad — DD-MEQ / ANDE</p>
+            </div>
+            <button onclick="exportarExcel()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition">
+                📊 Descargar Resumen (Excel)
+            </button>
+        </div>
+
+        <!-- Sección de Gráficos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-xs">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Condición General de Equipos</h3>
+                <div class="h-64 flex justify-center">
+                    <canvas id="graficoCondicion"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-xs">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Informes por Zona</h3>
+                <div class="h-64">
+                    <canvas id="graficoZonas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros de Búsqueda -->
+        <div class="bg-white p-6 rounded-xl shadow-xs mb-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Filtros de Búsqueda</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Zona</label>
+                    <select id="filtroZona" onchange="cargarDatos()" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-sm text-gray-700">
+                        <option value="">Todas las zonas</option>
+                        <option value="ZONA CENTRAL">Zona Central</option>
+                        <option value="ZONA ESTE">Zona Este</option>
+                        <option value="ZONA SUR">Zona Sur</option>
+                        <option value="ZONA NORTE">Zona Norte</option>
+                        <option value="METROPOLITANO">Metropolitano</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Condición</label>
+                    <select id="filtroCondicion" onchange="cargarDatos()" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-sm text-gray-700">
+                        <option value="">Todas las condiciones</option>
+                        <option value="✅ Apto">Apto</option>
+                        <option value="⚠ Condicional">Condicional</option>
+                        <option value="❌ Fuera de servicio">Fuera de Servicio</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Buscar por TAG / Serie</label>
+                    <input type="text" id="buscarTag" oninput="cargarDatos()" placeholder="Ej: Transfo-01..." class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-sm text-gray-700">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Datos -->
+        <div class="bg-white rounded-xl shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-4">Fecha</th>
+                            <th class="px-6 py-4">Técnico</th>
+                            <th class="px-6 py-4">Equipo</th>
+                            <th class="px-6 py-4">Código / TAG</th>
+                            <th class="px-6 py-4">Zona</th>
+                            <th class="px-6 py-4">Condición</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaInformes">
+                        <!-- Los datos se cargan dinámicamente aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Configuración de Supabase
+        const SUPABASE_URL = 'TU_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let datosActuales = []; // Guarda los datos en memoria para exportar a Excel
+        let chart1, chart2;    // Instancias de los gráficos
+
+        // 2. Carga de datos filtrados desde Supabase
+        async function cargarDatos() {
+            const zona = document.getElementById('filtroZona').value;
+            const condicion = document.getElementById('filtroCondicion').value;
+            const buscar = document.getElementById('buscarTag').value;
+
+            // Construcción de la consulta sobre tu tabla de informes (ej: 'informes_lcc')
+            let query = supabase.from('informes_lcc').select('*');
+
+            if (zona) query = query.eq('zona', zona);
+            if (condicion) query = query.eq('condicion_general', condicion);
+            if (buscar) query = query.ilike('codigo_tag', `%${buscar}%`);
+
+            const { data, error } = await query.order('fecha_trabajo', { ascending: false });
+
+            if (error) {
+                console.error("Error cargando informes:", error);
+                return;
+            }
+
+            datosActuales = data;
+            renderizarTabla(data);
+            actualizarGraficos(data);
+        }
+
+        // 3. Renderizar la tabla en HTML
+        function renderizarTabla(informes) {
+            const tbody = document.getElementById('tablaInformes');
+            tbody.innerHTML = '';
+
+            if(informes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-gray-400">No se encontraron informes con los filtros seleccionados.</td></tr>`;
+                return;
+            }
+
+            informes.forEach(inf => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-900">${inf.fecha_trabajo || 'N/A'}</td>
+                    <td class="px-6 py-4">${inf.tecnico_responsable}</td>
+                    <td class="px-6 py-4">${inf.nombre_equipo}</td>
+                    <td class="px-6 py-4 font-mono text-xs">${inf.codigo_tag || 'N/A'}</td>
+                    <td class="px-6 py-4">${inf.zona}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 rounded text-xs font-semibold bg-gray-100">${inf.condicion_general}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 4. Lógica de Gráficos Interactivos
+        function actualizarGraficos(informes) {
+            // Contadores para métricas
+            const condiciones = { '✅ Apto': 0, '⚠ Condicional': 0, '❌ Fuera de servicio': 0 };
+            const zonas = { 'ZONA CENTRAL': 0, 'ZONA ESTE': 0, 'ZONA SUR': 0, 'ZONA NORTE': 0, 'METROPOLITANO': 0 };
+
+            informes.forEach(inf => {
+                if (condiciones[inf.condicion_general] !== undefined) condiciones[inf.condicion_general]++;
+                if (zonas[inf.zona] !== undefined) zonas[inf.zona]++;
+            });
+
+            // Gráfico 1: Condición (Torta)
+            if (chart1) chart1.destroy();
+            chart1 = new Chart(document.getElementById('graficoCondicion'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(condiciones),
+                    datasets: [{
+                        data: Object.values(condiciones),
+                        backgroundColor: ['#22c55e', '#eab308', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Gráfico 2: Zonas (Barras)
+            if (chart2) chart2.destroy();
+            chart2 = new Chart(document.getElementById('graficoZonas'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(zonas),
+                    datasets: [{
+                        label: 'Cantidad de Equipos',
+                        data: Object.values(zonas),
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        // 5. Descarga de Reportes a Excel (SheetJS)
+        function exportarExcel() {
+            if(datosActuales.length === 0) {
+                alert("No hay datos disponibles para descargar.");
+                return;
+            }
+            // Mapeo limpio de columnas para el Excel de tu jefe
