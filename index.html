@@ -461,67 +461,160 @@
     .header-org { display: none; }
   }
 
-  /* FOTOS */
-  .foto-upload {
-    border: 1px dashed var(--border);
+
+  /* LCC BADGE */
+  .lcc-badge {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(0,229,255,0.07);
+    border: 1px solid var(--accent);
     border-radius: 4px;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    overflow: hidden;
-    min-height: 140px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface2);
+    padding: 16px 20px;
+    margin-bottom: 4px;
   }
 
-  .foto-upload:hover { border-color: var(--accent); background: rgba(0,229,255,0.03); }
+  .lcc-badge-icon { font-size: 28px; line-height: 1; }
 
-  .foto-preview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 20px;
-    width: 100%;
-    height: 100%;
-    min-height: 140px;
-  }
-
-  .foto-preview img {
-    width: 100%;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: 3px;
-    display: block;
-  }
-
-  .foto-icon { font-size: 28px; line-height: 1; }
-
-  .foto-hint {
-    font-size: 12px;
-    color: var(--muted);
-    text-align: center;
-    font-family: var(--mono);
+  .lcc-badge-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
     letter-spacing: 0.5px;
   }
 
-  .btn-remove-foto {
-    margin-top: 6px;
+  .lcc-badge-sub {
     font-family: var(--mono);
     font-size: 10px;
-    padding: 5px 12px;
-    background: none;
-    color: var(--error);
-    border: 1px solid var(--error);
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 0.2s;
+    color: var(--muted);
     letter-spacing: 1px;
+    margin-top: 3px;
   }
 
-  .btn-remove-foto:hover { background: rgba(255,61,61,0.1); }
+  /* TIPO TRABAJO TOGGLE */
+  .tipo-trabajo-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .tipo-btn {
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 400;
+    text-align: center;
+  }
+
+  .tipo-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  .tipo-btn.active {
+    background: rgba(0,229,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* FOTOS */
+  .fotos-agregar-row {
+    margin-bottom: 16px;
+  }
+
+  .btn-agregar-foto {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 11px 20px;
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+    border-radius: 3px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn-agregar-foto:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .fotos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .foto-item {
+    position: relative;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    aspect-ratio: 1;
+  }
+
+  .foto-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .foto-item-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.6);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #ccc;
+    padding: 3px 6px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .foto-item-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+    background: rgba(200,0,0,0.75);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .foto-item-remove:hover { background: rgba(220,0,0,1); }
+
+  .fotos-vacio {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--border);
+    text-align: center;
+    padding: 16px 0 4px;
+    letter-spacing: 1px;
+  }
 
 </style>
 </head>
@@ -556,19 +649,24 @@
         <div class="form-row">
           <div class="field">
             <label>Técnico responsable *</label>
-            <input type="text" id="tecnico" placeholder="Nombre completo">
+            <select id="tecnico">
+              <option value="">— Seleccionar —</option>
+              <option>Edgar Valdez</option>
+              <option>Daniel Reinoso</option>
+              <option>Carolina Recalde</option>
+              <option>Enrique Martinez</option>
+              <option>Claudelino Maidana</option>
+              <option>Jorge Reyes</option>
+              <option>Fredy Peralta</option>
+              <option>Miguel Arrua</option>
+            </select>
           </div>
           <div class="field">
             <label>Fecha del trabajo *</label>
             <input type="date" id="fecha">
           </div>
         </div>
-        <div class="form-row">
-          <div class="field">
-            <label>N° de Trabajo</label>
-            <input type="text" id="ot" placeholder="OT-001">
-          </div>
-        </div>
+
       </div>
 
       <div class="form-section">
@@ -629,27 +727,85 @@
       </div>
 
       <div class="form-section">
-        <div class="form-section-label">Ubicación</div>
-        <div class="form-row">
+        <div class="form-section-label">Ubicación del equipo</div>
+
+        <div class="form-row single" style="margin-bottom:18px;">
           <div class="field">
-            <label>Ubicación del equipo *</label>
-            <input type="text" id="planta" placeholder="Ej: Subestación Norte">
-          </div>
-          <div class="field">
-            <label>Área / Sala</label>
-            <input type="text" id="area" placeholder="Ej: Sala de Celdas MT">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label>Dirección / Ciudad</label>
-            <input type="text" id="direccion" placeholder="Ciudad o dirección del sitio">
-          </div>
-          <div class="field">
-            <label>Coordenadas GPS (opcional)</label>
-            <input type="text" id="gps" placeholder="Ej: -25.2867, -57.6470">
+            <label>Tipo de ubicación *</label>
+            <div class="tipo-trabajo-toggle">
+              <button type="button" class="tipo-btn active" id="btn-linea" onclick="setTipoTrabajo('linea')">📡 Línea</button>
+              <button type="button" class="tipo-btn" id="btn-estacion" onclick="setTipoTrabajo('estacion')">🏭 Estación</button>
+              <button type="button" class="tipo-btn" id="btn-lcc" onclick="setTipoTrabajo('lcc')">🔬 LCC Boggianni</button>
+              <button type="button" class="tipo-btn" id="btn-otra" onclick="setTipoTrabajo('otra')">📍 Otra localidad</button>
+            </div>
+            <input type="hidden" id="tipo_trabajo" value="linea">
           </div>
         </div>
+
+        <!-- LÍNEA -->
+        <div id="ubicacion-linea">
+          <div class="form-row">
+            <div class="field">
+              <label>Identificación de línea *</label>
+              <input type="text" id="planta" placeholder="Ej: L-23 San Lorenzo - Luque">
+            </div>
+            <div class="field">
+              <label>Referencia</label>
+              <input type="text" id="area" placeholder="Ej: Vano 5, Km 12, Poste N°...">
+            </div>
+          </div>
+          <div class="form-row single">
+            <div class="field">
+              <label>Dirección / Ciudad</label>
+              <input type="text" id="direccion" placeholder="Ciudad o referencia">
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTACIÓN -->
+        <div id="ubicacion-estacion" style="display:none">
+          <div class="form-row">
+            <div class="field">
+              <label>Zona *</label>
+              <select id="zona_estacion" onchange="filtrarEstaciones()">
+                <option value="">— Seleccionar zona —</option>
+                <option value="ESTE">ZONA ESTE</option>
+                <option value="SUR">ZONA SUR</option>
+                <option value="CENTRAL">ZONA CENTRAL</option>
+                <option value="NORTE">ZONA NORTE</option>
+                <option value="METROPOLITANO">METROPOLITANO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Estación *</label>
+              <select id="planta_estacion" onchange="syncPlanta()">
+                <option value="">— Seleccionar zona primero —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- LCC BOGGIANNI -->
+        <div id="ubicacion-lcc" style="display:none">
+          <div class="lcc-badge">
+            <span class="lcc-badge-icon">🔬</span>
+            <div>
+              <div class="lcc-badge-title">LCC Boggianni</div>
+              <div class="lcc-badge-sub">Laboratorio de Control y Calidad — DD-MEQ · ANDE</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OTRA LOCALIDAD -->
+        <div id="ubicacion-otra" style="display:none">
+          <div class="form-row single">
+            <div class="field">
+              <label>Localidad / Descripción *</label>
+              <input type="text" id="otra_localidad" placeholder="Ej: Taller contratista, Depósito central...">
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="form-section">
@@ -664,30 +820,14 @@
 
       <div class="form-section">
         <div class="form-section-label">Fotografías</div>
-        <div class="form-row">
-          <div class="field">
-            <label>Foto del equipo</label>
-            <div class="foto-upload" id="foto-equipo-area" onclick="document.getElementById('foto_equipo').click()">
-              <input type="file" id="foto_equipo" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(this,'preview-equipo','foto-equipo-area')">
-              <div id="preview-equipo" class="foto-preview">
-                <span class="foto-icon">📷</span>
-                <span class="foto-hint">Toca para agregar foto del equipo</span>
-              </div>
-            </div>
-            <button class="btn-remove-foto" id="btn-remove-equipo" style="display:none" onclick="removeFoto('foto_equipo','preview-equipo','foto-equipo-area','btn-remove-equipo')">✕ Quitar foto</button>
-          </div>
-          <div class="field">
-            <label>Foto del trabajo</label>
-            <div class="foto-upload" id="foto-trabajo-area" onclick="document.getElementById('foto_trabajo').click()">
-              <input type="file" id="foto_trabajo" accept="image/*" capture="environment" style="display:none" onchange="previewFoto(this,'preview-trabajo','foto-trabajo-area','btn-remove-trabajo')">
-              <div id="preview-trabajo" class="foto-preview">
-                <span class="foto-icon">📷</span>
-                <span class="foto-hint">Toca para agregar foto del trabajo</span>
-              </div>
-            </div>
-            <button class="btn-remove-foto" id="btn-remove-trabajo" style="display:none" onclick="removeFoto('foto_trabajo','preview-trabajo','foto-trabajo-area','btn-remove-trabajo')">✕ Quitar foto</button>
-          </div>
+        <div class="fotos-agregar-row">
+          <button type="button" class="btn-agregar-foto" onclick="document.getElementById('input-fotos').click()">
+            📷 Cámara · 🖼 Galería — Agregar fotos
+          </button>
+          <input type="file" id="input-fotos" accept="image/*" multiple style="display:none" onchange="agregarFotos(this)">
         </div>
+        <div id="fotos-grid" class="fotos-grid"></div>
+        <div id="fotos-vacio" class="fotos-vacio">No hay fotos agregadas</div>
       </div>
 
       <div class="form-section">
@@ -751,21 +891,15 @@ const HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_
 const LOGO_B64 = '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';
 
 const ENSAYOS = [
-  'Resistencia de aislamiento',
-  'Índice de polarización (IP)',
-  'Resistencia de contacto',
-  'Resistencia de devanados',
-  'Relación de transformación (TTR)',
-  'Rigidez dieléctrica aceite',
-  'Factor de potencia (tan δ)',
-  'Corriente de excitación',
-  'Impedancia de secuencia',
-  'Respuesta en frecuencia (FRA)',
-  'Termografía infrarroja',
-  'Prueba de continuidad',
-  'Puesta a tierra / Resistividad',
-  'Ultrasonido / DGA',
-  'Calibración instrumento',
+  'Tensión Aplicada',
+  'Resistencia de Contacto',
+  'Resistencia de Aislación',
+  'Puesta a Tierra / Resistividad',
+  'Rigidez Dieléctrica del Aceite',
+  'Muestra de Aceite',
+  'Relación de Transformación',
+  'Tensión Inducida',
+  'Tangente Delta',
 ];
 
 let ensayosSeleccionados = new Set();
@@ -835,10 +969,10 @@ async function guardarInforme() {
   const tecnico = document.getElementById('tecnico').value.trim();
   const fecha = document.getElementById('fecha').value;
   const equipo = document.getElementById('equipo').value.trim();
-  const planta = document.getElementById('planta').value.trim();
   const condicion = document.getElementById('condicion_general').value;
+  const ubicacion = getUbicacionData();
 
-  if (!tecnico || !fecha || !equipo || !planta || !condicion) {
+  if (!tecnico || !fecha || !equipo || !ubicacion.planta || !condicion) {
     showToast('Complete los campos obligatorios (*)', 'error');
     return;
   }
@@ -853,7 +987,6 @@ async function guardarInforme() {
 
   const payload = {
     tecnico, fecha,
-    ot: document.getElementById('ot').value.trim(),
     equipo,
     tag_equipo: document.getElementById('tag_equipo').value.trim(),
     marca: document.getElementById('marca').value.trim(),
@@ -861,14 +994,15 @@ async function guardarInforme() {
     tipo_equipo: document.getElementById('tipo_equipo').value,
     tension: document.getElementById('tension').value.trim(),
     potencia: document.getElementById('potencia').value.trim(),
-    planta,
-    area: document.getElementById('area').value.trim(),
-    direccion: document.getElementById('direccion').value.trim(),
-    gps: document.getElementById('gps').value.trim(),
+    tipo_trabajo: ubicacion.tipo_trabajo,
+    planta: ubicacion.planta,
+    zona: ubicacion.zona,
+    area: ubicacion.area,
+    direccion: ubicacion.direccion,
+    gps: ubicacion.gps,
     ensayos: ensayosData,
     condicion_general: condicion,
-    foto_equipo: window._fotoEquipoB64 || null,
-    foto_trabajo: window._fotoTrabajoB64 || null,
+    fotos: window._fotos.map(f => f.b64),
     observaciones: document.getElementById('observaciones').value.trim(),
     trabajos: document.getElementById('trabajos').value.trim(),
     proxima: document.getElementById('proxima').value.trim(),
@@ -919,8 +1053,7 @@ async function cargarInformes() {
         <div class="informe-card-header">
           <div>
             <div class="informe-equipo">${inf.equipo || '—'}</div>
-            <div class="informe-meta">${inf.tecnico} · ${fecha} · ${inf.planta || '—'}</div>
-            ${inf.ot ? `<div class="informe-meta">OT: ${inf.ot}</div>` : ''}
+            <div class="informe-meta">${inf.tecnico} · ${fecha} · ${inf.tipo_trabajo ? inf.tipo_trabajo + ': ' : ''}${inf.planta || '—'}${inf.zona ? ' (' + inf.zona + ')' : ''}</div>
           </div>
           <span class="informe-badge ${badgeClass}">${badgeText}</span>
         </div>
@@ -947,52 +1080,149 @@ function showView(v) {
 }
 
 function limpiarFormulario() {
-  ['tecnico','ot','equipo','tag_equipo','marca','nro_serie','tension','potencia','planta','area','direccion','gps','observaciones','trabajos','proxima'].forEach(id => {
+  ['tecnico','equipo','tag_equipo','marca','nro_serie','tension','potencia','planta','area','direccion','gps','area_est','gps_est','observaciones','trabajos','proxima'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
   document.getElementById('tipo_equipo').value = '';
   document.getElementById('condicion_general').value = '';
+  document.getElementById('zona_estacion').value = '';
+  document.getElementById('planta_estacion').innerHTML = '<option value="">— Seleccionar zona primero —</option>';
+  const otraEl = document.getElementById('otra_localidad');
+  if (otraEl) otraEl.value = '';
+  setTipoTrabajo('linea');
   ensayosSeleccionados.clear();
   renderEnsayos();
   renderResultados();
-  removeFoto('foto_equipo','preview-equipo','foto-equipo-area','btn-remove-equipo');
-  removeFoto('foto_trabajo','preview-trabajo','foto-trabajo-area','btn-remove-trabajo');
+  limpiarFotos();
 }
 
+
+
+// ─── ESTACIONES POR ZONA ──────────────────────────────────────────────────────
+const ESTACIONES = {
+  ESTE: ['SE-K15','ES-YZU','SE-HER','SE-MCE','SE-NAR','ES-PBU','ES-IRY','SE-MPO','ES-SGA','ES-JEP','SE-CUR','ES-CDO','ES-JLM','CH-ACY','ES-APR','ES-PIH','ES-PEN','ES-CAT','ES-SRI','ES-PFO','ES-MUI','ES-ZUN','SE-ACY','ES-CAL'],
+  SUR: ['ES-AYO','ES-CAM','ES-CBO','ES-NAT','ES-SIG','ES-SJB','ES-SPA','ES-TRI'],
+  CENTRAL: ['ES-ABA','ES-BSP','ES-IRO','ES-CZU','ES-CYO','ES-PPE','ES-PPEFUTURO','ES-COV','ES-SRO','ES-VAQ','ES-SES','SE-CZA','SE-LZO','SE-CLY','SE-SPN','SE-VIL'],
+  NORTE: ['ES-CBA','ES-CCO','ES-HOR','ES-LPA','ES-VMI-1','ES-VMI-2','ES-VRE','SE-CBV','SE-CON','SE-FIL','SE-MES','SE-PJC','SE-YBY'],
+  METROPOLITANO: ['ES-BRO','ES-ALT','ES-CAP','ES-CMY','ES-BMO','ES-ELA','ES-GUA','ES-LAM','ES-LAV','ES-LIM','ES-LUQ','ES-PBO','ES-PCA','ES-PIR','ES-PSA','ES-SAN','ES-SLO','ES-VAU','ES-VEL','ES-VAP','SE-BCP','ES-VHA','ES-SIC','SE-BPA','SE-BTW','SE-CAE','SE-CEN','SE-CAU','SE-FDM','SE-CNU','SE-TBO','SE-QUI','SE-VCE','SE-VTA','T-ES-ADM','T-ES-ALY','T-SE-ACE','T-SE-VEM','SE-SMI','SE-PAR','SE-MRA','SE-MBU','SE-ITG','SE-ITG FUTURO','SE-GHN','SE-GDI','SE-REP','ES-MOV'],
+};
+
+function setTipoTrabajo(tipo) {
+  document.getElementById('tipo_trabajo').value = tipo;
+  ['linea','estacion','lcc','otra'].forEach(t => {
+    document.getElementById('btn-' + t).classList.toggle('active', tipo === t);
+    document.getElementById('ubicacion-' + t).style.display = tipo === t ? 'block' : 'none';
+  });
+}
+
+function filtrarEstaciones() {
+  const zona = document.getElementById('zona_estacion').value;
+  const sel = document.getElementById('planta_estacion');
+  sel.innerHTML = '<option value="">— Seleccionar estación —</option>';
+  if (!zona || !ESTACIONES[zona]) return;
+  ESTACIONES[zona].forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e;
+    opt.textContent = e;
+    sel.appendChild(opt);
+  });
+}
+
+function syncPlanta() {
+  // noop — se lee directamente al guardar
+}
+
+function getUbicacionData() {
+  const tipo = document.getElementById('tipo_trabajo').value;
+  if (tipo === 'linea') {
+    return {
+      tipo_trabajo: 'Línea',
+      planta: document.getElementById('planta').value.trim(),
+      area: document.getElementById('area').value.trim(),
+      direccion: document.getElementById('direccion').value.trim(),
+      gps: '',
+      zona: '',
+    };
+  } else if (tipo === 'estacion') {
+    return {
+      tipo_trabajo: 'Estación',
+      planta: document.getElementById('planta_estacion').value,
+      area: '',
+      direccion: '',
+      gps: '',
+      zona: document.getElementById('zona_estacion').value,
+    };
+  } else if (tipo === 'lcc') {
+    return {
+      tipo_trabajo: 'LCC Boggianni',
+      planta: 'LCC Boggianni',
+      area: '',
+      direccion: '',
+      gps: '',
+      zona: '',
+    };
+  } else {
+    return {
+      tipo_trabajo: 'Otra localidad',
+      planta: document.getElementById('otra_localidad').value.trim(),
+      area: '',
+      direccion: '',
+      gps: '',
+      zona: '',
+    };
+  }
+}
 
 // ─── FOTOS ────────────────────────────────────────────────────────────────────
-function previewFoto(input, previewId, areaId, btnId) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const b64 = e.target.result;
-    // Guardar en variable global
-    if (input.id === 'foto_equipo') window._fotoEquipoB64 = b64;
-    if (input.id === 'foto_trabajo') window._fotoTrabajoB64 = b64;
-    // Mostrar preview
-    const preview = document.getElementById(previewId);
-    preview.innerHTML = `<img src="${b64}" alt="foto">`;
-    const btn = document.getElementById(btnId || 'btn-remove-' + (input.id === 'foto_equipo' ? 'equipo' : 'trabajo'));
-    if (btn) btn.style.display = 'block';
-  };
-  reader.readAsDataURL(file);
+window._fotos = []; // [{name, b64}]
+
+function agregarFotos(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  let pending = files.length;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      window._fotos.push({ name: file.name, b64: e.target.result });
+      pending--;
+      if (pending === 0) renderFotosGrid();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = ''; // reset para poder agregar más
 }
 
-function removeFoto(inputId, previewId, areaId, btnId) {
-  const input = document.getElementById(inputId);
-  if (input) input.value = '';
-  if (inputId === 'foto_equipo') window._fotoEquipoB64 = null;
-  if (inputId === 'foto_trabajo') window._fotoTrabajoB64 = null;
-  const preview = document.getElementById(previewId);
-  if (preview) {
-    const isEquipo = inputId === 'foto_equipo';
-    preview.innerHTML = `<span class="foto-icon">📷</span><span class="foto-hint">Toca para agregar foto del ${isEquipo ? 'equipo' : 'trabajo'}</span>`;
+function renderFotosGrid() {
+  const grid = document.getElementById('fotos-grid');
+  const vacio = document.getElementById('fotos-vacio');
+  grid.innerHTML = '';
+  if (window._fotos.length === 0) {
+    vacio.style.display = 'block';
+    return;
   }
-  const btn = document.getElementById(btnId);
-  if (btn) btn.style.display = 'none';
+  vacio.style.display = 'none';
+  window._fotos.forEach((foto, idx) => {
+    const item = document.createElement('div');
+    item.className = 'foto-item';
+    item.innerHTML = `
+      <img src="${foto.b64}" alt="foto ${idx+1}">
+      <div class="foto-item-label">${foto.name}</div>
+      <button class="foto-item-remove" onclick="quitarFoto(${idx})" title="Quitar">✕</button>
+    `;
+    grid.appendChild(item);
+  });
+}
+
+function quitarFoto(idx) {
+  window._fotos.splice(idx, 1);
+  renderFotosGrid();
+}
+
+function limpiarFotos() {
+  window._fotos = [];
+  renderFotosGrid();
 }
 
 function exportarPDF(inf) {
@@ -1085,7 +1315,7 @@ function exportarPDF(inf) {
 
   seccion('Identificacion');
   filaDupla('Técnico', inf.tecnico, 'Fecha', fecha);
-  filaDupla('N° de Trabajo', inf.ot, 'Sección', 'LCC — DD-MEQ — ANDE');
+  fila('Sección', 'LCC — DD-MEQ — ANDE');
   y += 2;
 
   seccion('Equipo Intervenido');
@@ -1096,8 +1326,10 @@ function exportarPDF(inf) {
   y += 2;
 
   seccion('Ubicacion');
-  filaDupla('Ubicación del equipo', inf.planta, 'Área / Sala', inf.area);
-  filaDupla('Dirección', inf.direccion, 'GPS', inf.gps);
+  filaDupla('Tipo de trabajo', inf.tipo_trabajo, inf.zona ? 'Zona' : '', inf.zona || '');
+  filaDupla('Estación / Línea', inf.planta, 'Área / Sala', inf.area);
+  if (inf.direccion) filaDupla('Dirección', inf.direccion, 'GPS', inf.gps);
+  else if (inf.gps) fila('GPS', inf.gps);
   y += 2;
 
   const ensayos = inf.ensayos || {};
@@ -1161,27 +1393,26 @@ function exportarPDF(inf) {
   }
 
   // ── FOTOS ──
-  const fotos = [
-    { label: 'Foto del Equipo', data: inf.foto_equipo },
-    { label: 'Foto del Trabajo', data: inf.foto_trabajo },
-  ].filter(f => f.data);
-
-  if (fotos.length > 0) {
+  const fotosArr = Array.isArray(inf.fotos) ? inf.fotos.filter(Boolean) : [];
+  if (fotosArr.length > 0) {
     seccion('Registro Fotografico');
-    const fotoW = fotos.length === 1 ? COL : (COL - 6) / 2;
-    fotos.forEach((foto, i) => {
-      if (y > 220) { doc.addPage(); y = 18; }
-      const xPos = MARGIN + i * (fotoW + 6);
+    const cols = Math.min(fotosArr.length, 2);
+    const fotoW = cols === 1 ? COL : (COL - 6) / 2;
+    const fotoH = fotoW * 0.68;
+    fotosArr.forEach((b64, i) => {
+      const col = i % 2;
+      if (col === 0 && i > 0) y += fotoH + 10;
+      if (y + fotoH > 272) { doc.addPage(); y = 18; }
+      const xPos = MARGIN + col * (fotoW + 6);
       try {
-        // Detectar tipo
-        const mime = foto.data.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-        const b64data = foto.data.split(',')[1];
-        doc.addImage(b64data, mime, xPos, y, fotoW, fotoW * 0.65);
+        const mime = b64.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+        const b64data = b64.split(',')[1];
+        doc.addImage(b64data, mime, xPos, y, fotoW, fotoH);
         doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 100, 140);
-        doc.text(foto.label, xPos + fotoW / 2, y + fotoW * 0.65 + 4, { align: 'center' });
+        doc.text(`Foto ${i+1}`, xPos + fotoW / 2, y + fotoH + 4, { align: 'center' });
       } catch(e) { console.warn('No se pudo insertar foto', e); }
+      if (i === fotosArr.length - 1 || (i % 2 === 1)) y += fotoH + 10;
     });
-    y += fotoW * 0.65 + 10;
   }
 
   if (y > 240) { doc.addPage(); y = 18; }
