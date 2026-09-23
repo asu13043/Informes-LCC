@@ -524,6 +524,9 @@
 
   /* FOTOS */
   .fotos-agregar-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
     margin-bottom: 16px;
   }
 
@@ -821,10 +824,14 @@
       <div class="form-section">
         <div class="form-section-label">Fotografías</div>
         <div class="fotos-agregar-row">
-          <button type="button" class="btn-agregar-foto" onclick="document.getElementById('input-fotos').click()">
-            📷 Cámara · 🖼 Galería — Agregar fotos
+          <button type="button" class="btn-agregar-foto" onclick="document.getElementById('input-camara').click()">
+            📷 Tomar foto
           </button>
-          <input type="file" id="input-fotos" accept="image/*" multiple style="display:none" onchange="agregarFotos(this)">
+          <button type="button" class="btn-agregar-foto" onclick="document.getElementById('input-galeria').click()">
+            🖼 Elegir de galería
+          </button>
+          <input type="file" id="input-camara" accept="image/*" capture="environment" style="display:none" onchange="agregarFotos(this)">
+          <input type="file" id="input-galeria" accept="image/*" multiple style="display:none" onchange="agregarFotos(this)">
         </div>
         <div id="fotos-grid" class="fotos-grid"></div>
         <div id="fotos-vacio" class="fotos-vacio">No hay fotos agregadas</div>
@@ -855,12 +862,7 @@
             <textarea id="trabajos" placeholder="Detalle las tareas ejecutadas durante la intervención..."></textarea>
           </div>
         </div>
-        <div class="form-row single">
-          <div class="field">
-            <label>Próxima intervención recomendada</label>
-            <input type="text" id="proxima" placeholder="Ej: 12 meses / Mantenimiento preventivo">
-          </div>
-        </div>
+
       </div>
 
       <div class="form-actions">
@@ -1005,7 +1007,6 @@ async function guardarInforme() {
     fotos: window._fotos.map(f => f.b64),
     observaciones: document.getElementById('observaciones').value.trim(),
     trabajos: document.getElementById('trabajos').value.trim(),
-    proxima: document.getElementById('proxima').value.trim(),
   };
 
   const btn = document.getElementById('btn-guardar');
@@ -1080,7 +1081,7 @@ function showView(v) {
 }
 
 function limpiarFormulario() {
-  ['tecnico','equipo','tag_equipo','marca','nro_serie','tension','potencia','planta','area','direccion','gps','area_est','gps_est','observaciones','trabajos','proxima'].forEach(id => {
+  ['tecnico','equipo','tag_equipo','marca','nro_serie','tension','potencia','planta','area','direccion','gps','area_est','gps_est','observaciones','trabajos'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1385,12 +1386,7 @@ function exportarPDF(inf) {
     y += 4;
   }
 
-  if (inf.proxima) {
-    seccion('Proxima Intervencion Recomendada');
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 30, 30);
-    doc.text(inf.proxima, MARGIN, y);
-    y += 10;
-  }
+
 
   // ── FOTOS ──
   const fotosArr = Array.isArray(inf.fotos) ? inf.fotos.filter(Boolean) : [];
