@@ -583,8 +583,8 @@
             <input type="text" id="equipo" placeholder="Ej: Transformador TR-01">
           </div>
           <div class="field">
-            <label>Código / TAG del equipo</label>
-            <input type="text" id="tag_equipo" placeholder="Ej: 52-AYO-01">
+            <label>Posición / Alimentador</label>
+            <input type="text" id="tag_equipo" placeholder="Ej: P-01 / AL-23">
           </div>
         </div>
         <div class="form-row">
@@ -597,7 +597,7 @@
             <input type="text" id="nro_serie" placeholder="Ej: SN-2024-001">
           </div>
         </div>
-        <div class="form-row triple">
+        <div class="form-row">
           <div class="field">
             <label>Tipo de equipo</label>
             <select id="tipo_equipo">
@@ -621,10 +621,7 @@
               <option>Otro</option>
             </select>
           </div>
-          <div class="field">
-            <label>Tensión nominal</label>
-            <input type="text" id="tension" placeholder="Ej: 13,8 kV">
-          </div>
+
           <div class="field">
             <label>Potencia / Corriente nominal</label>
             <input type="text" id="potencia" placeholder="Ej: 1000 kVA">
@@ -652,8 +649,8 @@
         <div id="ubicacion-linea">
           <div class="form-row">
             <div class="field">
-              <label>Identificación de línea *</label>
-              <input type="text" id="planta" placeholder="Ej: L-23 San Lorenzo - Luque">
+              <label>Identificación de alimentador *</label>
+              <input type="text" id="planta" placeholder="Ej: AL-23 San Lorenzo - Luque">
             </div>
             <div class="field">
               <label>Referencia</label>
@@ -735,7 +732,7 @@
               <option value="">— Seleccionar —</option>
               <option value="OK">✅ Apto — Sin observaciones</option>
               <option value="CONDICIONAL">⚠️ Condicional — Requiere seguimiento</option>
-              <option value="FALLA">❌ Fuera de servicio — Requiere intervención</option>
+              <option value="FALLA">❌ OUT LCC — Requiere intervención</option>
             </select>
           </div>
         </div>
@@ -883,7 +880,6 @@ async function guardarInforme() {
     marca: document.getElementById('marca').value.trim(),
     nro_serie: document.getElementById('nro_serie').value.trim(),
     tipo_equipo: document.getElementById('tipo_equipo').value,
-    tension: document.getElementById('tension').value.trim(),
     potencia: document.getElementById('potencia').value.trim(),
     tipo_trabajo: ubicacion.tipo_trabajo,
     planta: ubicacion.planta,
@@ -933,7 +929,7 @@ async function cargarInformes() {
     container.innerHTML = '';
     data.forEach((inf, idx) => {
       const badgeClass = inf.condicion_general === 'OK' ? 'badge-ok' : inf.condicion_general === 'FALLA' ? 'badge-falla' : 'badge-condicional';
-      const badgeText = inf.condicion_general === 'OK' ? 'APTO' : inf.condicion_general === 'FALLA' ? 'FALLA' : 'CONDICIONAL';
+      const badgeText = inf.condicion_general === 'OK' ? 'APTO' : inf.condicion_general === 'FALLA' ? 'OUT LCC' : 'CONDICIONAL';
       const ensayosTags = Object.keys(inf.ensayos || {}).map(e => `<span class="tag">${e}</span>`).join('');
       const fecha = inf.fecha ? new Date(inf.fecha + 'T12:00:00').toLocaleDateString('es-PY') : '—';
       const card = document.createElement('div');
@@ -969,7 +965,7 @@ function showView(v) {
 }
 
 function limpiarFormulario() {
-  ['tecnico','equipo','tag_equipo','marca','nro_serie','tension','potencia','planta','area','direccion','gps','area_est','gps_est','observaciones','trabajos'].forEach(id => {
+  ['tecnico','equipo','tag_equipo','marca','nro_serie','potencia','planta','area','direccion','gps','area_est','gps_est','observaciones','trabajos'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1072,7 +1068,7 @@ function exportarPDF(inf) {
   let y = 0;
 
   const fecha = inf.fecha ? new Date(inf.fecha + 'T12:00:00').toLocaleDateString('es-PY') : '—';
-  const condTexto = inf.condicion_general === 'OK' ? 'APTO' : inf.condicion_general === 'FALLA' ? 'FUERA DE SERVICIO' : 'CONDICIONAL';
+  const condTexto = inf.condicion_general === 'OK' ? 'APTO' : inf.condicion_general === 'FALLA' ? 'OUT LCC' : 'CONDICIONAL';
 
   // ENCABEZADO con logo ANDE
   doc.setFillColor(245, 247, 252);
@@ -1157,9 +1153,9 @@ function exportarPDF(inf) {
   y += 2;
 
   seccion('Equipo Intervenido');
-  filaDupla('Nombre del equipo', inf.equipo, 'TAG / Código', inf.tag_equipo);
+  filaDupla('Nombre del equipo', inf.equipo, 'Posición / Alimentador', inf.tag_equipo);
   filaDupla('Marca', inf.marca, 'N° Serie / N° ANDE', inf.nro_serie);
-  filaDupla('Tipo de equipo', inf.tipo_equipo, 'Tensión nominal', inf.tension);
+  fila('Tipo de equipo', inf.tipo_equipo);
   filaDupla('Potencia / Corriente', inf.potencia, '', '');
   y += 2;
 
