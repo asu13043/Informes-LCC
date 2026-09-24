@@ -496,7 +496,7 @@ tr:hover td { background: var(--bg); }
     <option value="">Todas las condiciones</option>
     <option value="OK">Apto</option>
     <option value="CONDICIONAL">Condicional</option>
-    <option value="FALLA">Falla</option>
+    <option value="FALLA">OUT LCC</option>
   </select>
   <select class="filtro-select" id="filtro-zona" onchange="aplicarFiltros()">
     <option value="">Todas las zonas</option>
@@ -726,7 +726,7 @@ function actualizarGraficos() {
   const cond = informesFiltrados.filter(i=>i.condicion_general==='CONDICIONAL').length;
   const fail = informesFiltrados.filter(i=>i.condicion_general==='FALLA').length;
   crearOActualizar('chart-condicion', 'doughnut',
-    ['Apto','Condicional','Falla'],
+    ['Apto','Condicional','OUT LCC'],
     [{ data: [ok, cond, fail], backgroundColor: ['#1b8a4c','#c47d00','#c0392b'], borderWidth: 0 }],
     true
   );
@@ -799,7 +799,7 @@ function renderTabla(data) {
   tbody.innerHTML = filtrado.map((inf, idx) => {
     const fecha = inf.fecha ? new Date(inf.fecha+'T12:00:00').toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
     const badge = inf.condicion_general === 'OK' ? '<span class="badge badge-ok">APTO</span>' :
-                  inf.condicion_general === 'FALLA' ? '<span class="badge badge-fail">FALLA</span>' :
+                  inf.condicion_general === 'FALLA' ? '<span class="badge badge-fail">OUT LCC</span>' :
                   '<span class="badge badge-cond">COND.</span>';
     const ensayos = Object.keys(inf.ensayos||{}).slice(0,3).map(e=>`<span class="ensayo-pill">${e}</span>`).join('');
     const masEnsayos = Object.keys(inf.ensayos||{}).length > 3 ? `<span class="ensayo-pill">+${Object.keys(inf.ensayos||{}).length-3}</span>` : '';
@@ -836,7 +836,7 @@ function sortTabla(col) {
 function verDetalle(idx) {
   const inf = todosLosInformes[idx];
   const fecha = inf.fecha ? new Date(inf.fecha+'T12:00:00').toLocaleDateString('es-PY',{day:'2-digit',month:'long',year:'numeric'}) : '—';
-  const condTexto = inf.condicion_general === 'OK' ? 'Apto' : inf.condicion_general === 'FALLA' ? 'Fuera de servicio' : 'Condicional';
+  const condTexto = inf.condicion_general === 'OK' ? 'Apto' : inf.condicion_general === 'FALLA' ? 'OUT LCC' : 'Condicional';
   const condClass = inf.condicion_general === 'OK' ? 'badge-ok' : inf.condicion_general === 'FALLA' ? 'badge-fail' : 'badge-cond';
 
   document.getElementById('modal-titulo').textContent = inf.equipo || '—';
