@@ -6,6 +6,7 @@
 <title>Dashboard LCC — ANDE</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg: #f0f2f7;
@@ -510,7 +511,7 @@ tr:hover td { background: var(--bg); }
   <select class="filtro-select" id="filtro-mes" onchange="aplicarFiltros()">
     <option value="">Todos los meses</option>
   </select>
-  <button class="btn-exportar" onclick="exportarCSV()">⬇ Exportar CSV</button>
+  <button class="btn-exportar" onclick="exportarPDF()">⬇ Exportar PDF</button>
 </div>
 
 <main>
@@ -589,6 +590,10 @@ tr:hover td { background: var(--bg); }
 </main>
 
 <!-- MODAL DETALLE -->
+<footer style="text-align:center;padding:16px;font-family:'Barlow',sans-serif;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:20px;">
+  Creado por Edgar Valdez — LCC — DD-MEQ
+</footer>
+
 <div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
   <div class="modal" id="modal">
     <div class="modal-header">
@@ -902,22 +907,118 @@ function cerrarModal(e) {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
 
-// ── EXPORTAR CSV ──────────────────────────────────────────────────────────────
-function exportarCSV() {
-  const cols = ['fecha','tecnico','equipo','tag_equipo','marca','nro_serie','tipo_equipo','tension','potencia','tipo_trabajo','zona','planta','condicion_general','observaciones','trabajos'];
-  const headers = ['Fecha','Técnico','Equipo','TAG','Marca','N° Serie','Tipo','Tensión','Potencia','Tipo trabajo','Zona','Ubicación','Condición','Observaciones','Trabajos'];
-  const rows = [headers.join(',')];
-  informesFiltrados.forEach(i => {
-    rows.push(cols.map(c => {
-      const v = (i[c]||'').toString().replace(/"/g,'""');
-      return `"${v}"`;
-    }).join(','));
+// ── EXPORTAR PDF RESUMEN ──────────────────────────────────────────────────────
+function exportarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, MARGIN = 16, COL = W - MARGIN * 2;
+  let y = 0;
+  const hoy = new Date().toLocaleDateString('es-PY', {day:'2-digit', month:'long', year:'numeric'});
+
+  // ── ENCABEZADO ──
+  doc.setFillColor(13, 27, 75);
+  doc.rect(0, 0, W, 30, 'F');
+  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(180,190,220);
+  doc.text('ANDE — Administración Nacional de Electricidad', MARGIN, 9);
+  doc.text('Departamento de Mantenimiento de Equipos de Distribución — DD-MEQ', MARGIN, 14);
+  doc.text('Sección Laboratorio de Control y Calidad — LCC', MARGIN, 19);
+  doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+  doc.text('RESUMEN DE INFORMES', MARGIN, 27);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(180,190,220);
+  doc.text(`Generado: ${hoy}`, W - MARGIN, 27, { align: 'right' });
+  y = 38;
+
+  // ── KPIs ──
+  const total = informesFiltrados.length;
+  const ok = informesFiltrados.filter(i => i.condicion_general === 'OK').length;
+  const cond = informesFiltrados.filter(i => i.condicion_general === 'CONDICIONAL').length;
+  const fail = informesFiltrados.filter(i => i.condicion_general === 'FALLA').length;
+  const pct = v => total > 0 ? Math.round(v/total*100) + '%' : '0%';
+
+  const kpis = [
+    { label: 'Total Informes', value: total, color: [13,27,75] },
+    { label: 'Aptos', value: ok + ' (' + pct(ok) + ')', color: [27,138,76] },
+    { label: 'Condicionales', value: cond + ' (' + pct(cond) + ')', color: [196,125,0] },
+    { label: 'OUT LCC', value: fail + ' (' + pct(fail) + ')', color: [192,57,43] },
+  ];
+  const kW = (COL - 9) / 4;
+  kpis.forEach((k, i) => {
+    const x = MARGIN + i * (kW + 3);
+    doc.setFillColor(...k.color);
+    doc.rect(x, y, kW, 16, 'F');
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(255,255,255);
+    doc.text(k.label.toUpperCase(), x + kW/2, y + 5.5, { align: 'center' });
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text(String(k.value), x + kW/2, y + 13, { align: 'center' });
   });
-  const blob = new Blob(['\uFEFF' + rows.join('\n')], {type: 'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `LCC_Informes_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
+  y += 24;
+
+  // ── FILTROS APLICADOS ──
+  const filtros = [];
+  const fTec = document.getElementById('filtro-tecnico').value;
+  const fCond = document.getElementById('filtro-condicion').value;
+  const fZona = document.getElementById('filtro-zona').value;
+  const fMes = document.getElementById('filtro-mes').value;
+  if (fTec) filtros.push('Técnico: ' + fTec);
+  if (fCond) filtros.push('Condición: ' + fCond);
+  if (fZona) filtros.push('Zona: ' + fZona);
+  if (fMes) filtros.push('Mes: ' + fMes);
+  if (filtros.length > 0) {
+    doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(100,110,140);
+    doc.text('Filtros: ' + filtros.join(' · '), MARGIN, y);
+    y += 8;
+  }
+
+  // ── TABLA DE INFORMES ──
+  doc.setFillColor(13,27,75);
+  doc.rect(MARGIN, y, COL, 7, 'F');
+  doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+  const cols = [
+    { label: 'Fecha',     x: MARGIN + 1,   w: 22 },
+    { label: 'Técnico',   x: MARGIN + 24,  w: 30 },
+    { label: 'Equipo',    x: MARGIN + 55,  w: 40 },
+    { label: 'Tipo',      x: MARGIN + 96,  w: 30 },
+    { label: 'Ubicación', x: MARGIN + 127, w: 32 },
+    { label: 'Condición', x: MARGIN + 160, w: 24 },
+  ];
+  cols.forEach(c => doc.text(c.label, c.x, y + 5));
+  y += 7;
+
+  let par = false;
+  informesFiltrados.forEach(inf => {
+    if (y > 272) {
+      doc.addPage();
+      y = 16;
+      doc.setFillColor(13,27,75); doc.rect(MARGIN, y, COL, 7, 'F');
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+      cols.forEach(c => doc.text(c.label, c.x, y + 5));
+      y += 7;
+    }
+    if (par) { doc.setFillColor(240,243,252); doc.rect(MARGIN, y, COL, 6, 'F'); }
+    const fecha = inf.fecha ? new Date(inf.fecha+'T12:00:00').toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
+    const cond = inf.condicion_general === 'OK' ? 'APTO' : inf.condicion_general === 'FALLA' ? 'OUT LCC' : 'COND.';
+    const condColor = inf.condicion_general === 'OK' ? [27,138,76] : inf.condicion_general === 'FALLA' ? [192,57,43] : [196,125,0];
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+    doc.text(fecha, cols[0].x, y + 4.2);
+    doc.text((inf.tecnico||'—').split(' ')[0] + ' ' + ((inf.tecnico||'').split(' ')[1]||''), cols[1].x, y + 4.2);
+    doc.text(doc.splitTextToSize(inf.equipo||'—', cols[2].w)[0], cols[2].x, y + 4.2);
+    doc.text(doc.splitTextToSize(inf.tipo_equipo||'—', cols[3].w)[0], cols[3].x, y + 4.2);
+    doc.text(doc.splitTextToSize(inf.planta||'—', cols[4].w)[0], cols[4].x, y + 4.2);
+    doc.setTextColor(...condColor); doc.setFont('helvetica','bold');
+    doc.text(cond, cols[5].x, y + 4.2);
+    y += 6; par = !par;
+  });
+
+  // ── PIE DE PÁGINA ──
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7); doc.setTextColor(140,150,170); doc.setFont('helvetica','normal');
+    doc.text('Creado por Edgar Valdez — LCC — DD-MEQ', MARGIN, 292);
+    doc.text(`Pág. ${i} de ${totalPages}`, W - MARGIN, 292, { align: 'right' });
+  }
+
+  doc.save(`LCC_Resumen_${new Date().toISOString().slice(0,10)}.pdf`);
 }
 </script>
 </body>
