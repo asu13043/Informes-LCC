@@ -1,1 +1,935 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard LCC — ANDE</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f0f2f7;
+  --surface: #ffffff;
+  --surface2: #e8eaf2;
+  --border: #d0d5e8;
+  --navy: #0d1b4b;
+  --navy2: #1a2d6b;
+  --accent: #e8202a;
+  --blue: #1565c0;
+  --text: #1a1f36;
+  --muted: #6b7599;
+  --ok: #1b8a4c;
+  --ok-bg: #e8f5ee;
+  --warn: #c47d00;
+  --warn-bg: #fff6e0;
+  --fail: #c0392b;
+  --fail-bg: #fde8e8;
+  --sans: 'Barlow', sans-serif;
+  --cond: 'Barlow Condensed', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* HEADER */
+header {
+  background: var(--navy);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-logo {
+  height: 36px;
+  border-radius: 3px;
+}
+
+.header-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.2);
+}
+
+.header-titles { display: flex; flex-direction: column; gap: 1px; }
+
+.header-sup {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 1px;
+  font-weight: 400;
+}
+
+.header-main {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-volver {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 16px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 3px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-volver:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+.last-update {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+/* FILTROS */
+.filtros-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filtros-bar label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filtro-select {
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 7px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.filtro-select:focus { outline: none; border-color: var(--blue); }
+
+.btn-exportar {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 18px;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-exportar:hover { background: var(--navy2); }
+
+/* MAIN */
+main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
+
+/* KPI CARDS */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.kpi-card.total::before { background: var(--navy); }
+.kpi-card.aptos::before { background: var(--ok); }
+.kpi-card.condicionales::before { background: var(--warn); }
+.kpi-card.fallas::before { background: var(--fail); }
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-family: var(--cond);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+}
+
+.kpi-card.aptos .kpi-value { color: var(--ok); }
+.kpi-card.condicionales .kpi-value { color: var(--warn); }
+.kpi-card.fallas .kpi-value { color: var(--fail); }
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* CHARTS GRID */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 22px;
+}
+
+.chart-title {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 18px;
+  letter-spacing: 0.3px;
+}
+
+.chart-wrap { position: relative; height: 220px; }
+
+/* TABLA */
+.tabla-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.tabla-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tabla-title {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tabla-search {
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 7px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  width: 220px;
+}
+
+.tabla-search:focus { outline: none; border-color: var(--blue); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead { background: var(--bg); }
+
+th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+th:hover { color: var(--text); }
+th.sorted { color: var(--blue); }
+
+td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg); }
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+.badge-ok { background: var(--ok-bg); color: var(--ok); }
+.badge-cond { background: var(--warn-bg); color: var(--warn); }
+.badge-fail { background: var(--fail-bg); color: var(--fail); }
+
+.ensayo-pill {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 7px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--muted);
+  margin: 1px;
+}
+
+.btn-ver {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  background: none;
+  color: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-ver:hover { background: var(--blue); color: #fff; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--surface);
+  border-radius: 6px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  transform: translateY(20px);
+  transition: transform 0.2s;
+}
+
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-header {
+  background: var(--navy);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.modal-titulo {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.modal-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+
+.modal-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.modal-close:hover { color: #fff; }
+
+.modal-body { padding: 24px; }
+
+.modal-section { margin-bottom: 20px; }
+
+.modal-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.modal-field { display: flex; flex-direction: column; gap: 2px; }
+.modal-field-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+.modal-field-value { font-size: 13px; color: var(--text); }
+
+.ensayos-tabla { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ensayos-tabla th { background: var(--bg); padding: 7px 10px; text-align: left; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+.ensayos-tabla td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+
+.fotos-grid-modal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.fotos-grid-modal img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* ESTADO / LOADING */
+.estado {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+  header { padding: 0 16px; }
+  .filtros-bar { padding: 12px 16px; }
+  main { padding: 20px 14px 60px; }
+  th, td { padding: 9px 10px; }
+}
+
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .header-sup { display: none; }
+  .last-update { display: none; }
+  .modal-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <img class="header-logo" src="data:image/jpeg;base64,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" alt="ANDE">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="header-sup">DD-MEQ · Sección LCC</div>
+      <div class="header-main">Dashboard de Informes</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="last-update" id="last-update"></span>
+    <a href="index.html" class="btn-volver">← Volver a la app</a>
+  </div>
+</header>
+
+<div class="filtros-bar">
+  <label>Filtrar por</label>
+  <select class="filtro-select" id="filtro-tecnico" onchange="aplicarFiltros()">
+    <option value="">Todos los técnicos</option>
+  </select>
+  <select class="filtro-select" id="filtro-condicion" onchange="aplicarFiltros()">
+    <option value="">Todas las condiciones</option>
+    <option value="OK">Apto</option>
+    <option value="CONDICIONAL">Condicional</option>
+    <option value="FALLA">Falla</option>
+  </select>
+  <select class="filtro-select" id="filtro-zona" onchange="aplicarFiltros()">
+    <option value="">Todas las zonas</option>
+    <option value="ESTE">Zona Este</option>
+    <option value="SUR">Zona Sur</option>
+    <option value="CENTRAL">Zona Central</option>
+    <option value="NORTE">Zona Norte</option>
+    <option value="METROPOLITANO">Metropolitano</option>
+    <option value="LCC Boggianni">LCC Boggianni</option>
+  </select>
+  <select class="filtro-select" id="filtro-mes" onchange="aplicarFiltros()">
+    <option value="">Todos los meses</option>
+  </select>
+  <button class="btn-exportar" onclick="exportarCSV()">⬇ Exportar CSV</button>
+</div>
+
+<main>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card total">
+      <div class="kpi-label">Total informes</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+      <div class="kpi-sub" id="kpi-periodo">cargando...</div>
+    </div>
+    <div class="kpi-card aptos">
+      <div class="kpi-label">Aptos</div>
+      <div class="kpi-value" id="kpi-ok">—</div>
+      <div class="kpi-sub" id="kpi-ok-pct">sin datos</div>
+    </div>
+    <div class="kpi-card condicionales">
+      <div class="kpi-label">Condicionales</div>
+      <div class="kpi-value" id="kpi-cond">—</div>
+      <div class="kpi-sub" id="kpi-cond-pct">sin datos</div>
+    </div>
+    <div class="kpi-card fallas">
+      <div class="kpi-label">Fallas</div>
+      <div class="kpi-value" id="kpi-fail">—</div>
+      <div class="kpi-sub" id="kpi-fail-pct">sin datos</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Informes por mes</div>
+      <div class="chart-wrap"><canvas id="chart-mes"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Condición general</div>
+      <div class="chart-wrap"><canvas id="chart-condicion"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Informes por técnico</div>
+      <div class="chart-wrap"><canvas id="chart-tecnico"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Tipo de equipo intervenido</div>
+      <div class="chart-wrap"><canvas id="chart-equipo"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="tabla-card">
+    <div class="tabla-header">
+      <div class="tabla-title">Registro de informes</div>
+      <input type="text" class="tabla-search" placeholder="Buscar equipo, técnico..." oninput="buscarTabla(this.value)">
+    </div>
+    <div style="overflow-x:auto">
+      <table id="tabla-informes">
+        <thead>
+          <tr>
+            <th onclick="sortTabla('fecha')">Fecha</th>
+            <th onclick="sortTabla('tecnico')">Técnico</th>
+            <th onclick="sortTabla('equipo')">Equipo</th>
+            <th onclick="sortTabla('tipo_equipo')">Tipo</th>
+            <th>Ubicación</th>
+            <th onclick="sortTabla('condicion_general')">Condición</th>
+            <th>Ensayos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr><td colspan="8" class="estado">Cargando informes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-titulo" id="modal-titulo">—</div>
+        <div class="modal-sub" id="modal-sub">—</div>
+      </div>
+      <button class="modal-close" onclick="cerrarModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://ncbdfxqcgpncxobcvptn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jYmRmeHFjZ3BuY3hvYmN2cHRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDQ5MjcsImV4cCI6MjA5NDg4MDkyN30.Monic_ZoJFzyZ70eICMsWXXo4EurKe8zuDIKfYhxveQ';
+const HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+
+let todosLosInformes = [];
+let informesFiltrados = [];
+let sortCol = 'fecha';
+let sortAsc = false;
+let charts = {};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', cargarDatos);
+
+async function cargarDatos() {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/informes?order=fecha.desc&limit=1000`, { headers: HEADERS });
+    todosLosInformes = await r.json();
+    if (!Array.isArray(todosLosInformes)) { todosLosInformes = []; }
+    document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-PY', {hour:'2-digit',minute:'2-digit'});
+    poblarFiltros();
+    aplicarFiltros();
+  } catch(e) {
+    document.getElementById('tabla-body').innerHTML = '<tr><td colspan="8" class="estado">Error al conectar con la base de datos.</td></tr>';
+  }
+}
+
+// ── FILTROS ───────────────────────────────────────────────────────────────────
+function poblarFiltros() {
+  const tecnicos = [...new Set(todosLosInformes.map(i => i.tecnico).filter(Boolean))].sort();
+  const sel = document.getElementById('filtro-tecnico');
+  tecnicos.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+
+  const meses = [...new Set(todosLosInformes.map(i => i.fecha ? i.fecha.slice(0,7) : null).filter(Boolean))].sort().reverse();
+  const selM = document.getElementById('filtro-mes');
+  meses.forEach(m => {
+    const [y, mo] = m.split('-');
+    const nombre = new Date(y, mo-1, 1).toLocaleDateString('es-PY', {month:'long', year:'numeric'});
+    const o = document.createElement('option'); o.value = m; o.textContent = nombre; selM.appendChild(o);
+  });
+}
+
+function aplicarFiltros() {
+  const tecnico = document.getElementById('filtro-tecnico').value;
+  const condicion = document.getElementById('filtro-condicion').value;
+  const zona = document.getElementById('filtro-zona').value;
+  const mes = document.getElementById('filtro-mes').value;
+
+  informesFiltrados = todosLosInformes.filter(i => {
+    if (tecnico && i.tecnico !== tecnico) return false;
+    if (condicion && i.condicion_general !== condicion) return false;
+    if (zona && i.zona !== zona && i.tipo_trabajo !== zona) return false;
+    if (mes && (!i.fecha || !i.fecha.startsWith(mes))) return false;
+    return true;
+  });
+
+  actualizarKPIs();
+  actualizarGraficos();
+  renderTabla(informesFiltrados);
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+function actualizarKPIs() {
+  const total = informesFiltrados.length;
+  const ok = informesFiltrados.filter(i => i.condicion_general === 'OK').length;
+  const cond = informesFiltrados.filter(i => i.condicion_general === 'CONDICIONAL').length;
+  const fail = informesFiltrados.filter(i => i.condicion_general === 'FALLA').length;
+  const pct = v => total > 0 ? Math.round(v/total*100) + '%' : '0%';
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-ok').textContent = ok;
+  document.getElementById('kpi-cond').textContent = cond;
+  document.getElementById('kpi-fail').textContent = fail;
+  document.getElementById('kpi-ok-pct').textContent = pct(ok) + ' del total';
+  document.getElementById('kpi-cond-pct').textContent = pct(cond) + ' del total';
+  document.getElementById('kpi-fail-pct').textContent = pct(fail) + ' del total';
+
+  const fechas = informesFiltrados.map(i => i.fecha).filter(Boolean).sort();
+  if (fechas.length > 0) {
+    const desde = new Date(fechas[0]+'T12:00:00').toLocaleDateString('es-PY',{day:'2-digit',month:'short',year:'numeric'});
+    const hasta = new Date(fechas[fechas.length-1]+'T12:00:00').toLocaleDateString('es-PY',{day:'2-digit',month:'short',year:'numeric'});
+    document.getElementById('kpi-periodo').textContent = desde + ' — ' + hasta;
+  } else {
+    document.getElementById('kpi-periodo').textContent = 'sin datos';
+  }
+}
+
+// ── GRÁFICOS ──────────────────────────────────────────────────────────────────
+const PALETTE = ['#0d1b4b','#1565c0','#1b8a4c','#c47d00','#c0392b','#6b3fa0','#0097a7','#e65100'];
+
+function actualizarGraficos() {
+  // Por mes
+  const porMes = {};
+  informesFiltrados.forEach(i => {
+    const m = i.fecha ? i.fecha.slice(0,7) : 'Sin fecha';
+    porMes[m] = (porMes[m] || 0) + 1;
+  });
+  const mesesOrdenados = Object.keys(porMes).sort();
+  const mesesLabel = mesesOrdenados.map(m => {
+    if (m === 'Sin fecha') return m;
+    const [y,mo] = m.split('-');
+    return new Date(y, mo-1, 1).toLocaleDateString('es-PY',{month:'short',year:'2-digit'});
+  });
+  crearOActualizar('chart-mes', 'bar', mesesLabel, [{
+    label: 'Informes',
+    data: mesesOrdenados.map(m => porMes[m]),
+    backgroundColor: '#1565c0',
+    borderRadius: 3,
+  }], false);
+
+  // Condición
+  const ok = informesFiltrados.filter(i=>i.condicion_general==='OK').length;
+  const cond = informesFiltrados.filter(i=>i.condicion_general==='CONDICIONAL').length;
+  const fail = informesFiltrados.filter(i=>i.condicion_general==='FALLA').length;
+  crearOActualizar('chart-condicion', 'doughnut',
+    ['Apto','Condicional','Falla'],
+    [{ data: [ok, cond, fail], backgroundColor: ['#1b8a4c','#c47d00','#c0392b'], borderWidth: 0 }],
+    true
+  );
+
+  // Por técnico
+  const porTec = {};
+  informesFiltrados.forEach(i => { if(i.tecnico) porTec[i.tecnico] = (porTec[i.tecnico]||0)+1; });
+  const tecOrden = Object.entries(porTec).sort((a,b)=>b[1]-a[1]);
+  crearOActualizar('chart-tecnico', 'bar', tecOrden.map(t=>t[0]), [{
+    label: 'Informes',
+    data: tecOrden.map(t=>t[1]),
+    backgroundColor: PALETTE,
+    borderRadius: 3,
+  }], false, true);
+
+  // Por tipo equipo
+  const porTipo = {};
+  informesFiltrados.forEach(i => { if(i.tipo_equipo) porTipo[i.tipo_equipo] = (porTipo[i.tipo_equipo]||0)+1; });
+  const tipoOrden = Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  crearOActualizar('chart-equipo', 'bar', tipoOrden.map(t=>t[0]), [{
+    label: 'Intervenciones',
+    data: tipoOrden.map(t=>t[1]),
+    backgroundColor: '#0d1b4b',
+    borderRadius: 3,
+  }], false, true);
+}
+
+function crearOActualizar(id, tipo, labels, datasets, esDoughnut, horizontal) {
+  if (charts[id]) { charts[id].destroy(); }
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: tipo,
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: horizontal ? 'y' : 'x',
+      plugins: {
+        legend: { display: esDoughnut, position: 'right', labels: { font: { family: 'Barlow', size: 11 }, boxWidth: 12, padding: 10 } },
+      },
+      scales: esDoughnut ? {} : {
+        x: { grid: { display: horizontal }, ticks: { font: { family: 'Barlow', size: 11 }, maxRotation: 35 } },
+        y: { grid: { display: !horizontal }, ticks: { font: { family: 'Barlow', size: 11 } }, beginAtZero: true },
+      },
+    }
+  });
+}
+
+// ── TABLA ─────────────────────────────────────────────────────────────────────
+let busqueda = '';
+
+function renderTabla(data) {
+  const tbody = document.getElementById('tabla-body');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="estado">No hay informes con los filtros seleccionados.</td></tr>';
+    return;
+  }
+
+  let filtrado = data;
+  if (busqueda) {
+    const q = busqueda.toLowerCase();
+    filtrado = data.filter(i =>
+      (i.equipo||'').toLowerCase().includes(q) ||
+      (i.tecnico||'').toLowerCase().includes(q) ||
+      (i.planta||'').toLowerCase().includes(q) ||
+      (i.tipo_equipo||'').toLowerCase().includes(q)
+    );
+  }
+
+  tbody.innerHTML = filtrado.map((inf, idx) => {
+    const fecha = inf.fecha ? new Date(inf.fecha+'T12:00:00').toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    const badge = inf.condicion_general === 'OK' ? '<span class="badge badge-ok">APTO</span>' :
+                  inf.condicion_general === 'FALLA' ? '<span class="badge badge-fail">FALLA</span>' :
+                  '<span class="badge badge-cond">COND.</span>';
+    const ensayos = Object.keys(inf.ensayos||{}).slice(0,3).map(e=>`<span class="ensayo-pill">${e}</span>`).join('');
+    const masEnsayos = Object.keys(inf.ensayos||{}).length > 3 ? `<span class="ensayo-pill">+${Object.keys(inf.ensayos||{}).length-3}</span>` : '';
+    const ubicacion = inf.tipo_trabajo === 'Estación' ? `${inf.planta||'—'} <span style="color:var(--muted);font-size:11px;">(${inf.zona||''})</span>` :
+                      inf.tipo_trabajo === 'LCC Boggianni' ? 'LCC Boggianni' :
+                      inf.planta || '—';
+    return `<tr>
+      <td style="white-space:nowrap">${fecha}</td>
+      <td>${inf.tecnico||'—'}</td>
+      <td><strong>${inf.equipo||'—'}</strong>${inf.tag_equipo ? '<br><span style="font-size:11px;color:var(--muted)">'+inf.tag_equipo+'</span>' : ''}</td>
+      <td style="font-size:12px;color:var(--muted)">${inf.tipo_equipo||'—'}</td>
+      <td style="font-size:12px">${ubicacion}</td>
+      <td>${badge}</td>
+      <td>${ensayos}${masEnsayos}</td>
+      <td><button class="btn-ver" onclick="verDetalle(${todosLosInformes.indexOf(inf)})">Ver</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function buscarTabla(q) { busqueda = q; renderTabla(informesFiltrados); }
+
+function sortTabla(col) {
+  if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
+  informesFiltrados.sort((a,b) => {
+    const va = (a[col]||'').toString().toLowerCase();
+    const vb = (b[col]||'').toString().toLowerCase();
+    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+  renderTabla(informesFiltrados);
+}
+
+// ── MODAL DETALLE ─────────────────────────────────────────────────────────────
+function verDetalle(idx) {
+  const inf = todosLosInformes[idx];
+  const fecha = inf.fecha ? new Date(inf.fecha+'T12:00:00').toLocaleDateString('es-PY',{day:'2-digit',month:'long',year:'numeric'}) : '—';
+  const condTexto = inf.condicion_general === 'OK' ? 'Apto' : inf.condicion_general === 'FALLA' ? 'Fuera de servicio' : 'Condicional';
+  const condClass = inf.condicion_general === 'OK' ? 'badge-ok' : inf.condicion_general === 'FALLA' ? 'badge-fail' : 'badge-cond';
+
+  document.getElementById('modal-titulo').textContent = inf.equipo || '—';
+  document.getElementById('modal-sub').textContent = `${inf.tecnico} · ${fecha} · ${inf.planta||'—'}`;
+
+  const ensayosHTML = Object.entries(inf.ensayos||{}).length > 0 ? `
+    <table class="ensayos-tabla">
+      <thead><tr><th>Ensayo</th><th>Resultado</th><th>Valor medido</th></tr></thead>
+      <tbody>
+        ${Object.entries(inf.ensayos).map(([n,d])=>`
+          <tr>
+            <td>${n}</td>
+            <td><span class="badge ${d.estado==='OK'?'badge-ok':d.estado==='FALLA'?'badge-fail':'badge-cond'}">${d.estado||'N/A'}</span></td>
+            <td style="color:var(--muted)">${d.valor||'—'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>` : '<p style="color:var(--muted);font-size:13px">Sin ensayos registrados.</p>';
+
+  const fotosHTML = Array.isArray(inf.fotos) && inf.fotos.length > 0 ? `
+    <div class="fotos-grid-modal">
+      ${inf.fotos.map((b64,i)=>`<img src="${b64}" alt="Foto ${i+1}">`).join('')}
+    </div>` : '<p style="color:var(--muted);font-size:13px">Sin fotografías.</p>';
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">Identificación</div>
+      <div class="modal-grid">
+        <div class="modal-field"><div class="modal-field-label">Técnico</div><div class="modal-field-value">${inf.tecnico||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Fecha</div><div class="modal-field-value">${fecha}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Condición general</div><div class="modal-field-value"><span class="badge ${condClass}">${condTexto}</span></div></div>
+        <div class="modal-field"><div class="modal-field-label">Tipo de trabajo</div><div class="modal-field-value">${inf.tipo_trabajo||'—'}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Equipo</div>
+      <div class="modal-grid">
+        <div class="modal-field"><div class="modal-field-label">Nombre</div><div class="modal-field-value">${inf.equipo||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">TAG / Código</div><div class="modal-field-value">${inf.tag_equipo||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Tipo</div><div class="modal-field-value">${inf.tipo_equipo||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Marca</div><div class="modal-field-value">${inf.marca||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">N° Serie / ANDE</div><div class="modal-field-value">${inf.nro_serie||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Tensión nominal</div><div class="modal-field-value">${inf.tension||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Potencia / Corriente</div><div class="modal-field-value">${inf.potencia||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Ubicación</div><div class="modal-field-value">${inf.planta||'—'}${inf.zona?' ('+inf.zona+')':''}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Ensayos realizados</div>
+      ${ensayosHTML}
+    </div>
+    ${inf.observaciones ? `<div class="modal-section"><div class="modal-section-title">Observaciones técnicas</div><p style="font-size:13px;line-height:1.6">${inf.observaciones}</p></div>` : ''}
+    ${inf.trabajos ? `<div class="modal-section"><div class="modal-section-title">Trabajos realizados</div><p style="font-size:13px;line-height:1.6">${inf.trabajos}</p></div>` : ''}
+    <div class="modal-section">
+      <div class="modal-section-title">Fotografías</div>
+      ${fotosHTML}
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function cerrarModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+
+// ── EXPORTAR CSV ──────────────────────────────────────────────────────────────
+function exportarCSV() {
+  const cols = ['fecha','tecnico','equipo','tag_equipo','marca','nro_serie','tipo_equipo','tension','potencia','tipo_trabajo','zona','planta','condicion_general','observaciones','trabajos'];
+  const headers = ['Fecha','Técnico','Equipo','TAG','Marca','N° Serie','Tipo','Tensión','Potencia','Tipo trabajo','Zona','Ubicación','Condición','Observaciones','Trabajos'];
+  const rows = [headers.join(',')];
+  informesFiltrados.forEach(i => {
+    rows.push(cols.map(c => {
+      const v = (i[c]||'').toString().replace(/"/g,'""');
+      return `"${v}"`;
+    }).join(','));
+  });
+  const blob = new Blob(['﻿'+rows.join('
+')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `LCC_Informes_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
