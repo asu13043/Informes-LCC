@@ -576,6 +576,36 @@
       </div>
 
       <div class="form-section">
+        <div class="form-section-label">Tipo de trabajo</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Tipo de trabajo *</label>
+            <select id="tipo_trabajo_lcc">
+              <option value="">— Seleccionar —</option>
+              <option>Mantenimiento Preventivo</option>
+              <option>Mantenimiento Correctivo</option>
+              <option>Comisionamiento</option>
+              <option>Acompañamiento / Puesta en Servicio</option>
+              <option>Selección de Transformadores</option>
+              <option>Muestra de Aceite</option>
+              <option>Otros</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Sección de apoyo</label>
+            <select id="seccion_apoyo">
+              <option value="">— Seleccionar —</option>
+              <option>Sección Equipos Automáticos</option>
+              <option>Sección Interruptores</option>
+              <option>Sección Transformadores</option>
+              <option>Sección Electro-Electrónica</option>
+              <option>Otros</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
         <div class="form-section-label">Equipo intervenido</div>
         <div class="form-row">
           <div class="field">
@@ -618,6 +648,7 @@
               <option>Cable / Línea</option>
               <option>Aisladores / Descargadores</option>
               <option>Aceite Dieléctrico</option>
+              <option>Barra de Media Tensión</option>
               <option>Otro</option>
             </select>
           </div>
@@ -710,6 +741,8 @@
         </div>
 
       </div>
+
+
 
       <div class="form-section">
         <div class="form-section-label">Ensayos realizados</div>
@@ -878,6 +911,8 @@ async function guardarInforme() {
 
   const payload = {
     tecnico, fecha,
+    tipo_trabajo_lcc: document.getElementById('tipo_trabajo_lcc').value,
+    seccion_apoyo: document.getElementById('seccion_apoyo').value,
     equipo,
     tag_equipo: document.getElementById('tag_equipo').value.trim(),
     marca: document.getElementById('marca').value.trim(),
@@ -973,6 +1008,8 @@ function limpiarFormulario() {
     if (el) el.value = '';
   });
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('tipo_trabajo_lcc').value = '';
+  document.getElementById('seccion_apoyo').value = '';
   document.getElementById('tipo_equipo').value = '';
   document.getElementById('condicion_general').value = '';
   document.getElementById('zona_estacion').value = '';
@@ -1153,7 +1190,11 @@ function exportarPDF(inf) {
   seccion('Identificacion');
   filaDupla('Técnico', inf.tecnico, 'Fecha', fecha);
   fila('Sección', 'LCC — DD-MEQ — ANDE');
-  y += 2;
+  if (inf.tipo_trabajo_lcc || inf.seccion_apoyo) {
+    seccion('Tipo de Trabajo');
+    filaDupla('Tipo de trabajo', inf.tipo_trabajo_lcc, 'Sección de apoyo', inf.seccion_apoyo);
+    y += 2;
+  }
 
   seccion('Equipo Intervenido');
   filaDupla('Nombre del equipo', inf.equipo, 'Posición / Alimentador', inf.tag_equipo);
