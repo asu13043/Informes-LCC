@@ -511,6 +511,45 @@ tr:hover td { background: var(--bg); }
   <select class="filtro-select" id="filtro-mes" onchange="aplicarFiltros()">
     <option value="">Todos los meses</option>
   </select>
+  <select class="filtro-select" id="filtro-tipo-trabajo" onchange="aplicarFiltros()">
+    <option value="">Todos los tipos de trabajo</option>
+    <option>Mantenimiento Preventivo</option>
+    <option>Mantenimiento Correctivo</option>
+    <option>Comisionamiento</option>
+    <option>Acompañamiento / Puesta en Servicio</option>
+    <option>Selección de Transformadores</option>
+    <option>Muestra de Aceite</option>
+    <option>Otros</option>
+  </select>
+  <select class="filtro-select" id="filtro-seccion-apoyo" onchange="aplicarFiltros()">
+    <option value="">Todas las secciones</option>
+    <option>Sección Equipos Automáticos</option>
+    <option>Sección Interruptores</option>
+    <option>Sección Transformadores</option>
+    <option>Sección Electro-Electrónica</option>
+    <option>Otros</option>
+  </select>
+  <select class="filtro-select" id="filtro-tipo-equipo" onchange="aplicarFiltros()">
+    <option value="">Todos los equipos</option>
+    <option>Transformador de Distribución</option>
+    <option>Transformador de Medida (TC/TP)</option>
+    <option>Interruptor / Disyuntor</option>
+    <option>Seccionador</option>
+    <option>Reconectador</option>
+    <option>Regulador de Tensión</option>
+    <option>Banco de Capacitores</option>
+    <option>Celda MT/AT</option>
+    <option>GIS</option>
+    <option>Tablero BT</option>
+    <option>Motor Eléctrico</option>
+    <option>Generador</option>
+    <option>Puesta a Tierra</option>
+    <option>Cable / Línea</option>
+    <option>Aisladores / Descargadores</option>
+    <option>Barra de Media Tensión</option>
+    <option>Aceite Dieléctrico</option>
+    <option>Otro</option>
+  </select>
   <button class="btn-exportar" onclick="exportarPDF()">⬇ Exportar PDF</button>
 </div>
 
@@ -576,12 +615,13 @@ tr:hover td { background: var(--bg); }
             <th onclick="sortTabla('tipo_equipo')">Tipo</th>
             <th>Ubicación</th>
             <th onclick="sortTabla('condicion_general')">Condición</th>
+            <th onclick="sortTabla('tipo_trabajo_lcc')">Tipo trabajo</th>
             <th>Ensayos</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="tabla-body">
-          <tr><td colspan="8" class="estado">Cargando informes...</td></tr>
+          <tr><td colspan="9" class="estado">Cargando informes...</td></tr>
         </tbody>
       </table>
     </div>
@@ -622,13 +662,13 @@ let charts = {};
 document.addEventListener('DOMContentLoaded', cargarDatos);
 
 async function cargarDatos() {
-  document.getElementById('tabla-body').innerHTML = '<tr><td colspan="8" class="estado">Cargando informes...</td></tr>';
+  document.getElementById('tabla-body').innerHTML = '<tr><td colspan="9" class="estado">Cargando informes...</td></tr>';
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/informes?select=*&order=created_at.desc&limit=1000`, { headers: HEADERS });
     if (!r.ok) {
       const err = await r.text();
       console.error('Supabase error:', r.status, err);
-      document.getElementById('tabla-body').innerHTML = `<tr><td colspan="8" class="estado">Error ${r.status}: ${err}</td></tr>`;
+      document.getElementById('tabla-body').innerHTML = `<tr><td colspan="9" class="estado">Error ${r.status}: ${err}</td></tr>`;
       return;
     }
     const data = await r.json();
@@ -639,7 +679,7 @@ async function cargarDatos() {
     aplicarFiltros();
   } catch(e) {
     console.error('Fetch error:', e);
-    document.getElementById('tabla-body').innerHTML = `<tr><td colspan="8" class="estado">Error de conexión: ${e.message}</td></tr>`;
+    document.getElementById('tabla-body').innerHTML = `<tr><td colspan="9" class="estado">Error de conexión: ${e.message}</td></tr>`;
   }
 }
 
@@ -663,12 +703,18 @@ function aplicarFiltros() {
   const condicion = document.getElementById('filtro-condicion').value;
   const zona = document.getElementById('filtro-zona').value;
   const mes = document.getElementById('filtro-mes').value;
+  const tipoTrabajo = document.getElementById('filtro-tipo-trabajo').value;
+  const seccionApoyo = document.getElementById('filtro-seccion-apoyo').value;
+  const tipoEquipo = document.getElementById('filtro-tipo-equipo').value;
 
   informesFiltrados = todosLosInformes.filter(i => {
     if (tecnico && i.tecnico !== tecnico) return false;
     if (condicion && i.condicion_general !== condicion) return false;
     if (zona && i.zona !== zona && i.tipo_trabajo !== zona) return false;
     if (mes && (!i.fecha || !i.fecha.startsWith(mes))) return false;
+    if (tipoTrabajo && i.tipo_trabajo_lcc !== tipoTrabajo) return false;
+    if (seccionApoyo && i.seccion_apoyo !== seccionApoyo) return false;
+    if (tipoEquipo && i.tipo_equipo !== tipoEquipo) return false;
     return true;
   });
 
@@ -786,7 +832,7 @@ let busqueda = '';
 function renderTabla(data) {
   const tbody = document.getElementById('tabla-body');
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="estado">No hay informes con los filtros seleccionados.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="estado">No hay informes con los filtros seleccionados.</td></tr>';
     return;
   }
 
@@ -818,6 +864,7 @@ function renderTabla(data) {
       <td style="font-size:12px;color:var(--muted)">${inf.tipo_equipo||'—'}</td>
       <td style="font-size:12px">${ubicacion}</td>
       <td>${badge}</td>
+      <td style="font-size:11px;color:var(--muted)">${inf.tipo_trabajo_lcc||'—'}</td>
       <td>${ensayos}${masEnsayos}</td>
       <td><button class="btn-ver" onclick="verDetalle(${todosLosInformes.indexOf(inf)})">Ver</button></td>
     </tr>`;
@@ -872,7 +919,8 @@ function verDetalle(idx) {
         <div class="modal-field"><div class="modal-field-label">Técnico</div><div class="modal-field-value">${inf.tecnico||'—'}</div></div>
         <div class="modal-field"><div class="modal-field-label">Fecha</div><div class="modal-field-value">${fecha}</div></div>
         <div class="modal-field"><div class="modal-field-label">Condición general</div><div class="modal-field-value"><span class="badge ${condClass}">${condTexto}</span></div></div>
-        <div class="modal-field"><div class="modal-field-label">Tipo de trabajo</div><div class="modal-field-value">${inf.tipo_trabajo||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Tipo de trabajo</div><div class="modal-field-value">${inf.tipo_trabajo_lcc||'—'}</div></div>
+        <div class="modal-field"><div class="modal-field-label">Sección de apoyo</div><div class="modal-field-value">${inf.seccion_apoyo||'—'}</div></div>
       </div>
     </div>
     <div class="modal-section">
